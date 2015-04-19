@@ -22,3 +22,10 @@ scrapy crawl page -a page=<PAGE_ID> -a token=<PAGE_TOKEN>
 Then, insights for that pages posts will be collected and sent to RabbitMQ.
 
 RabbitMQ configuration can be found in `insights/settings.py`.
+
+## Notes
+
+Due to time constraints, the following features have been omitted
+
+- Tests
+- Handling Facebook Pagination
