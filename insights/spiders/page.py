@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import scrapy
+from insights.items import InsightsItem
 from insights.utils import first
 
 
@@ -20,26 +21,21 @@ class PageSpider(scrapy.Spider):
         'post_story_adds'                        # Comments
     ]
 
-    def __init__(self, token='CAAUWHeiuLx0BAEZB4WO5fGnf59YDT5fWHvo4caTrVUMCjLeFZB3AiB3lJanc3pI9KEGLTyaZBtZBUyn34CiidvghnbEH2yKS81sm5p3PfHGNzy13VZAfx9WImHUuBGqtZCb61XA63pxD31WlzTh27vMZBNVZCDTdDh7T9rXr6JceZB690LiKng33mxIkyUj8x04CR0LJNZCosURj0cuVaHNzFkkshq3inSMJbhsJZBFefIyywZDZD', page_id='1613996332147163', *args, **kwargs):
-        assert token is not None, 'Token required to make Facebook request'
-        assert page_id is not None, 'Page Id needed to make Facebook request'
-
+    def __init__(self, token=None, page=None, *args, **kwargs):
         self.token = token
-        self.page_id = page_id
+        self.page_id = page
 
-        # TODO: What defines 'recent' posts?
         self.start_urls = [
             'https://graph.facebook.com/v2.3/{page_id}/posts?access_token={token}'.format(
-                token=token, page_id=page_id
+                token=token, page_id=page
             )
         ]
 
     def parse(self, response):
-        # TODO: Do we want to page through results?
         try:
             page = json.loads(response.body)
         except:
-            pass
+            yield
 
         posts = page['data']
 
@@ -48,7 +44,6 @@ class PageSpider(scrapy.Spider):
             request = scrapy.Request(url, callback=self.parse_insights)
             request.meta['post'] = post
             yield request
-
 
     def parse_insights(self, response):
         insights_response = json.loads(response.body)
@@ -63,11 +58,11 @@ class PageSpider(scrapy.Spider):
         insight = dict((key, insight.get(key)) for key in self.insights_keys)
 
         post = response.meta.get('post')
-        insight['post_url'] = first(post.get('actions'), {}).get('link')        # Url / Link
+        insight['post_url'] = first(post.get('actions'), {}).get('link')      # Url / Link
         insight['post_headline'] = post.get('name', 'Status Update')          # Headline
         insight['post_blurb'] = post.get('description', post.get('message'))  # Blurb
 
-        pass
+        yield InsightsItem(insight)
 
     @staticmethod
     def flatten_values(insight_values):

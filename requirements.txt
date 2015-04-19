@@ -1,5 +1,8 @@
 Scrapy==0.24.5
 Twisted==15.1.0
+amqplib==1.0.2
+anyjson==0.3.3
+carrot==0.10.7
 cffi==0.9.2
 characteristic==14.3.0
 cryptography==0.8.2
